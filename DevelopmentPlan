@@ -1,0 +1,27 @@
+
+Overview: 
+
+Fishnets is a memory and machine code manipulation scripting language implemented using the 
+
+standard in and standard out *nix APIs to maintain direct compatibility with any Unix-like operating system.
+
+
+Fishnets is my primary passion project that I am developing after seeing the broader shift of cyber-security enthuasts wanting to get into
+
+memory and related binary exploitation challenges; 
+
+but lacking the practical experience of having a common memory and 
+
+machine code manipulation environment to explore raw memory/code manipulation in an accessible way. 
+
+The name Fishnets comes from the expression to `hook` memory, and that to call this something lude like pegger or mem_hooker, would 
+
+certainly lose me users, and contributors(or gain them ...?). 
+
+
+
+
+Features:
+
+1. Parsing of a prefix grammar to supply the Read, Write, Execute from the provide scripting file.
+
