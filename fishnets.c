@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/mman.h>
 
 #define MAX_INPUT_SIZE 1024
 #define MAX_COMMAND_SIZE 256
@@ -64,6 +67,28 @@ int main(int argc, char *argv[]) {
     AddressRange range;
     unsigned char byte;
     int bytes_read;
+    int mem_fd;
+    void *mem_map;
+
+    // Check if running as root
+    if (geteuid() != 0) {
+        printf("Error: must be run as root.\n");
+        exit(1);
+    }
+
+    // Open /dev/mem for read-write access
+    mem_fd = open("/dev/mem", O_RDWR);
+    if (mem_fd < 0) {
+        printf("Error: could not open /dev/mem.\n");
+        exit(1);
+    }
+
+    // Map entire physical address space into userland
+    mem_map = mmap(NULL, 0xFFFFFFFFFFFFFFFF, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_SHARED, mem_fd, 0);
+    if (mem_map == MAP_FAILED) {
+        printf("Error: could not map physical address space.\n");
+        exit(1);
+    }
 
     while (1) {
         // Read a line of input from standard in
@@ -73,26 +98,4 @@ int main(int argc, char *argv[]) {
         }
 
         // Parse the command from the input
-        if (sscanf(input, "%s %s %s", command, filename, input+strlen(command)+strlen(filename)+2) != 3) {
-            printf("Invalid input. Please enter a Fishnets command.\n");
-            continue;
-        }
-
-        // Parse the address range from the input
-        range = parse_address_range(input+strlen(command)+strlen(filename)+3);
-
-        // Perform the specified operation on the specified address range
-        if (command[0] == OP_READ) {
-            for (unsigned long long addr = range.start; addr <= range.end; addr++) {
-                byte = read_byte(addr);
-                printf("0x%llx: 0x%02x\n", addr, byte);
-            }
-        } else if (command[0] == OP_WRITE) {
-            for (unsigned long long addr = range.start; addr <= range.end; addr++) {
-                sscanf(input+strlen(command)+strlen(filename)+strlen(input+strlen(command)+strlen(filename)+3)+4, "%hhx", &byte);
-                write_byte(addr, byte);
-            }
-        } else if (command[0] == OP_EXECUTE) {
-            execute_instructions(range.start);
-        } else {
-            printf("Invalid command. Please enter
+       
